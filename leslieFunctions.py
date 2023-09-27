@@ -36,11 +36,82 @@ import cmgdb_utils
 # Define Leslie map (what we learn)
 def leslie(x, th1 = 19.6, th2 = 23.68):
     return [(th1 * x[0] + th2 * x[1]) * math.exp (-0.1 * (x[0] + x[1])), 0.7 * x[0]]
+    
+def meas_err_traj_gen(noise_std = 0, traj_len = 1, th1 = 19.6, th2 = 23.68, lower_bounds = [-0.001, -0.001], upper_bounds = [90.0, 70.0]):
+# Generate random point in the rectangle defined by lower_bounds, upper_bounds
+    init = np.random.uniform(
+                    low=[lower_bounds[0],lower_bounds[1]],
+                    high=[upper_bounds[0], upper_bounds[1]], 
+                    size=(1, 2))
+    for images in range(traj_len): # will find traj_len consecutive images
+        image = [leslie(init[-1], th1, th2)]
+        init = np.append(init, image, axis = 0)
+    # add noise to all images (measurement error)
+    noise_meas = np.random.normal(loc=0.0,
+                               scale=noise_std,
+                               size=(len(init),2))
+    init = init + noise_meas
+    # add this trajectory to the data
+    x_train = init[:-1]
+    y_train = init[1:]
+    return x_train, y_train
 
-def sampGenLes(noise_std = 0, sample_size = 1000, noise_type = 'meas_err', traj_len = 1, th1 = 19.6, th2 = 23.68, lower_bounds = [-0.001, -0.001], upper_bounds = [90.0, 70.0]):
+def step_err_traj_gen(noise_std = 0, traj_len = 1, th1 = 19.6, th2 = 23.68, lower_bounds = [-0.001, -0.001], upper_bounds = [90.0, 70.0]):
+    '''
+
+    Parameters
+    ----------
+    noise_std : TYPE, optional
+        DESCRIPTION. The default is 0.
+    traj_len : TYPE, optional
+        DESCRIPTION. The default is 1.
+    th1 : TYPE, optional
+        DESCRIPTION. The default is 19.6.
+    th2 : TYPE, optional
+        DESCRIPTION. The default is 23.68.
+    lower_bounds : TYPE, optional
+        DESCRIPTION. The default is [-0.001, -0.001].
+    upper_bounds : TYPE, optional
+        DESCRIPTION. The default is [90.0, 70.0].
+
+    Returns
+    -------
+    x_train : TYPE
+        DESCRIPTION.
+    y_train : TYPE
+        DESCRIPTION.
+
+    '''
+    init = np.random.uniform(
+        low=[lower_bounds[0],lower_bounds[1]],
+        high=[upper_bounds[0], upper_bounds[1]], 
+        size=(1, 2))
+    for image_trial in range(traj_len):
+        image = leslie(init[-1], th1, th2) + np.random.normal(loc=0.0,
+                                   scale=noise_std,
+                                   size=(1,2))
+        for check in range(2):
+            if image[0][check] < 0:
+                image[0][check] = 0
+        init = np.append(init, image, axis = 0)
+    x_train = init[:-1]
+    y_train = init[1:]
+    return x_train, y_train
+
+def embedder(arreh, delay_num = 1):
+    traj = arreh[:,0]
+    embedded = []
+    for i in range(len(arreh) - delay_num):
+        embedded.append([traj[i], traj[i + delay_num]])
+    embedded = np.array(embedded)
+    embed_input = embedded[:-1]
+    embed_output = embedded[1:]
+    return embed_input, embed_output
+
+def sampGenLes(noise_std = 0, sample_size = 1000, noise_type = 'meas_err', traj_len = 1, th1 = 19.6, th2 = 23.68, lower_bounds = [-0.001, -0.001], upper_bounds = [90.0, 70.0], embed = False, delay_num = 1):
     '''
     Generates various samples of the Leslie model from the given domain.
-    Origin appended to sample (except if noise_type = 'test')
+    Origin appended to sample
     
     Parameters
     ----------
@@ -50,13 +121,11 @@ def sampGenLes(noise_std = 0, sample_size = 1000, noise_type = 'meas_err', traj_
         Number of points in sample. The default is 1000.
     noise_type : string, optional
         How noise is added to the model.
-        3 options:
+        2 options:
             'meas_err':
                 sample is taken, then error added to each output.  Simulutes a system that exactly obeys Leslie model, but is measured with imperfect equipment.
             'step_err':
                 at each step in the trajectory, noise is added.  Simulates system which is governed by Leslie but also influenced by random factors, like Myvtan.
-            'test':
-                No error applied.  Origin not applied to sample.
         The default is 'meas_err'.
     traj_len : int, optional
         Length of trajectories sampled. If 1, then randomly sampled from whole domain.  
@@ -86,62 +155,42 @@ def sampGenLes(noise_std = 0, sample_size = 1000, noise_type = 'meas_err', traj_
 
     '''
     
+    # initial warning to make sure that we can build the right sample size
     if sample_size % traj_len != 0:
         raise ValueError('Sample size must be a multiple of trajectory length')
-    rand_inits = int(sample_size / traj_len)
-    if noise_type == 'meas_err':   
-        # Generate uniform points in the rectangle defined by lower_bounds, upper_bounds
-        x_train = np.array([]).reshape(0,2)
-        for trial in range(rand_inits):
-            init = np.random.uniform(
-            low=[lower_bounds[0],lower_bounds[1]],
-            high=[upper_bounds[0], upper_bounds[1]], 
-            size=(1, 2))
-            for images in range(traj_len-1):
-                image = [leslie(init[-1], th1, th2)]
-                init = np.append(init, image, axis = 0)
-            x_train = np.append(x_train, init, axis = 0)
-        x_train = np.array(x_train)
-        # find image of Leslie map f for these points
-        y_train = np.array([leslie(x, th1, th2) for x in x_train])
-        # add noise to images
-        Y_noise = np.random.normal(loc=0.0,
-                                   scale=noise_std,
-                                   size=(len(y_train),2))
-        y_train = y_train + Y_noise
-        x_train = np.append(x_train, np.array([[0,0]]).reshape(1,2), axis = 0)
-        y_train = np.append(y_train, np.array([[0,0]]).reshape(1,2), axis = 0)
-        return x_train, y_train[:,0], y_train[:,1]
-    elif noise_type == 'step_err':
-        # Generate uniform points in the rectangle defined by lower_bounds, upper_bounds
-        x_train = np.array([[]]).reshape(0,2)
-        y_train = np.array([[]]).reshape(0,2)
-        for trial in range(rand_inits):
-            init = np.random.uniform(
-                low=[lower_bounds[0],lower_bounds[1]],
-                high=[upper_bounds[0], upper_bounds[1]], 
-                size=(1, 2))
-            for image_trial in range(traj_len):
-                image = leslie(init[-1], th1, th2) + np.random.normal(loc=0.0,
-                                           scale=noise_std,
-                                           size=(1,2))
-                init = np.append(init, image, axis = 0)
-            x_train = np.append(x_train, init[:-1], axis = 0)
-            y_train = np.append(y_train, init[1:], axis = 0)
-        x_train = np.array(x_train)
-        y_train = np.array(y_train)
-        x_train = np.append(x_train, np.array([[0,0]]).reshape(1,2), axis = 0)
-        y_train = np.append(y_train, np.array([[0,0]]).reshape(1,2), axis = 0)
-        return x_train,  y_train[:,0], y_train[:,1]
-    elif noise_type == 'test':
-        # Generate uniform points in the rectangle defined by lower_bounds, upper_bounds
-        x_train = np.random.uniform(
-            low=[lower_bounds[0],lower_bounds[1]],
-            high=[upper_bounds[0], upper_bounds[1]], 
-            size=(sample_size, 2))
-        # find image of Leslie map f for these points
-        y_train = np.array([leslie(x, th1, th2) for x in x_train])
-        return x_train, y_train[:,0], y_train[:,1]
+    
+    rand_inits = int(sample_size / traj_len) # number of total trajectories required
+    
+    if embed == True: # so that output embedded traj is original traj_len
+        traj_len = traj_len + delay_num + 1 
+    
+    x_train = np.array([]).reshape(0,2)
+    y_train = np.array([]).reshape(0,2)
+    for rand_init in range(rand_inits):
+        # build a single trajectory
+        if noise_type == 'meas_err':
+            x_traj, y_traj = meas_err_traj_gen(noise_std = noise_std, 
+                                               traj_len = traj_len,
+                                               th1 = th1,
+                                               th2 = th2,
+                                               lower_bounds = lower_bounds,
+                                               upper_bounds = upper_bounds)
+        elif noise_type == 'step_err':
+            x_traj, y_traj = step_err_traj_gen(noise_std = noise_std, 
+                                               traj_len = traj_len,
+                                               th1 = th1,
+                                               th2 = th2,
+                                               lower_bounds = lower_bounds,
+                                               upper_bounds = upper_bounds)
+        # embedding step for single trajectory
+        if embed == True:
+            x_traj, y_traj = embedder(x_traj, delay_num)
+        x_train = np.append(x_train, x_traj, axis = 0)
+        y_train = np.append(y_train, y_traj, axis = 0)
+    x_train = np.append(x_train, np.array([[0,0]]).reshape(1,2), axis = 0)
+    y_train = np.append(y_train, np.array([[0,0]]).reshape(1,2), axis = 0)
+    return x_train, y_train[:,0], y_train[:,1]
+
         
 # define regressor
 def GP(X_train, Y_train, tau = 6.445, beta = 1, noise_std = 0, n_restarts = 31):
