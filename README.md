@@ -1,6 +1,6 @@
 # LeslieProject
 
-Code for the paper using CMGDB on the Leslie model
+Code for the paper using CMGDB on the Leslie model.
 
 ## Creating the Noise/Sample Size Table
 
