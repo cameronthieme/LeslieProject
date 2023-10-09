@@ -1,6 +1,8 @@
 # LeslieProject
 
-Code for the paper using CMGDB on the Leslie model.
+Code for the paper using CMGDB on the Leslie model. 
+
+README file currently only contains instructions for Table creation, not heatmap
 
 ## Creating the Noise/Sample Size Table
 
