@@ -42,8 +42,7 @@ noise_std = 0.1
 
 # how many jobs we can queue at once
 batch_size = 500
-# total number of nodes we need to compute at
-grid_size = 2500
+
 
 # Section 2: Importing packages and determining parameter values
 
@@ -63,10 +62,13 @@ latestTime = startTime
 # parameter range from Database Paper,  and # boxes in each dim
 th1max = 37
 th1min = 8
-N1 = 50
+N1 = 40
 th2max = 50
 th2min = 3
-N2 = 50
+N2 = 40
+
+# total number of nodes we need to compute at
+grid_size = N1*N2
 
 # finding correct row/column in grid
 job = int(sys.argv[1]) # Input file name
