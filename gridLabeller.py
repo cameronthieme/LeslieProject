@@ -19,10 +19,10 @@ latestTime = startTime
 # parameter range from Database Paper,  and # boxes in each dim
 th1max = 37
 th1min = 8
-N1 = 50
+N1 = 40
 th2max = 50
 th2min = 3
-N2 = 50
+N2 = 40
 
 # finding correct row/column in grid
 job = 0
@@ -54,7 +54,7 @@ with open(fileNameResults, mode='w', newline='') as file:
 unique_mg_list = [fname]
 unique_mg_dict = {fname:label}
 
-for job in range(1,2500):
+for job in range(1,N1*N2):
     
     # finding correct row/column in grid
     xIter = job % N1
