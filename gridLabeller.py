@@ -34,7 +34,7 @@ th1 = xIter * (th1max - th1min) / N1 + (th1max - th1min) / (2 * N1) + th1min
 th2 = yIter * (th2max - th2min) / N2 + (th2max - th2min) / (2 * N2) + th2min
 
 # name of true file
-fname = 'MorseGraphs/MG_True_th1_' + str(th1) + 'th2_' + str(th2) 
+fname = 'MorseGraphs/MG_True_th1_' + str(th1) + '_th2_' + str(th2) 
 
 num_uniq = 0
 label = 0
@@ -50,7 +50,7 @@ with open(fileNameResults, mode='w', newline='') as file:
     # Write the list to the CSV file
     writer.writerow(infoList)
 
-
+# initializing list and dictionary of unique results
 unique_mg_list = [fname]
 unique_mg_dict = {fname:label}
 
