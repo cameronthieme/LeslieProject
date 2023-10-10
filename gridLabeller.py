@@ -65,7 +65,7 @@ for job in range(1,N1*N2):
     th2 = yIter * (th2max - th2min) / N2 + (th2max - th2min) / (2 * N2) + th2min
     
     # name of true file
-    fname = 'MorseGraphs/MG_True_th1_' + str(th1) + 'th2_' + str(th2) 
+    fname = 'MorseGraphs/MG_True_th1_' + str(th1) + '_th2_' + str(th2) 
     
     matchCount = 0
     for filename in unique_mg_list:
