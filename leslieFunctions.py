@@ -453,16 +453,17 @@ def ConleyMorseMatcher_FromFile(fname1, fname2):
         return 0 
    
 # saving files for reduced CM graphs
-def ReducedGraphSaver(morseFileName, saveName):
+def ReducedGraphSaver(oldFile, newFile):
     '''
     Saves the reduced CM graph of a CM graph file
     Input: 
         morseFileName -- string, location/name of original graph file
         saveName -- string, location/name of reduced graph file
     '''
-    morse_graph_unique = cmgdb_utils.graph_from_dotfile(morseFileName)
-    nontriv_uniq = cmgdb_utils.NonTrivialCMGraphPyChomP(morse_graph_unique)
-    graphviz.Source(nontriv_uniq_plot).save(saveName)
+    morse_graph_unreduced = cmgdb_utils.graph_from_dotfile(oldFile)
+    nontriv_mg = cmgdb_utils.NonTrivialCMGraphPyChomP(morse_graph_unreduced)
+    nontriv_mg_plot = nontriv_mg.graphviz()
+    graphviz.Source(nontriv_mg_plot).save(newFile)
     
     
     
