@@ -51,12 +51,14 @@ with open(fileNameResults, mode='w', newline='') as file:
     writer = csv.writer(file)
     # Write the list to the CSV file
     writer.writerow(infoList)
-# copying unique MG to other folder
-
 
 # initializing list and dictionary of unique results
 unique_mg_list = [fname]
 unique_mg_dict = {fname:label}
+
+# copying unique MG to other folder
+saveName = 'UniqueMGs/MG_True_class_' + str(label)
+ReducedGraphSaver(fname, saveName)
 
 for job in range(1,N1*N2):
     
@@ -71,19 +73,26 @@ for job in range(1,N1*N2):
     # name of true file
     fname = 'MorseGraphs/MG_True_th1_' + str(th1) + '_th2_' + str(th2) 
     
+    # this section checks to see if we have any matches with running list of unique MGs
     matchCount = 0
     for filename in unique_mg_list:
         matchVal = ConleyMorseMatcher_FromFile(filename, fname)
         matchCount += matchVal
+        # if we match with an existing unique MG, label this file with that label
         if matchVal == 1:
             label = unique_mg_dict[filename]
             break
-            
+
+    # condition only happens if we didn't match with any existing unique MGs
+    # Thus this is new unique MG; added to list and saved
     if matchCount == 0:
         num_uniq += 1
         unique_mg_list.append(fname)
         unique_mg_dict[fname] = num_uniq
         label = num_uniq
+        # copying unique MG to other folder
+        saveName = 'UniqueMGs/MG_True_class_' + str(label)
+        ReducedGraphSaver(fname, saveName)
         
     # Info we want to save
     infoList = [th1, th2, label]
