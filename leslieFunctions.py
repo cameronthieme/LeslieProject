@@ -29,6 +29,7 @@ from sklearn.gaussian_process.kernels import RBF#, WhiteKernel
 from interval import interval, imath
 import networkx as nx
 import cmgdb_utils
+import graphviz
 
 
 # Section 1: Regression Functions
@@ -451,7 +452,18 @@ def ConleyMorseMatcher_FromFile(fname1, fname2):
     else:
         return 0 
    
-    
+# saving files for reduced CM graphs
+def ReducedGraphSaver(oldFile, newFile):
+    '''
+    Saves the reduced CM graph of a CM graph file
+    Input: 
+        morseFileName -- string, location/name of original graph file
+        saveName -- string, location/name of reduced graph file
+    '''
+    morse_graph_unreduced = cmgdb_utils.graph_from_dotfile(oldFile)
+    nontriv_mg = cmgdb_utils.NonTrivialCMGraphPyChomP(morse_graph_unreduced)
+    nontriv_mg_plot = nontriv_mg.graphviz()
+    graphviz.Source(nontriv_mg_plot).save(newFile)
     
     
     

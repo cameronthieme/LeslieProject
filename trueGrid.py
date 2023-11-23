@@ -52,7 +52,7 @@ N2 = 40
 # Must get through 1600 parameter combos (grid is 40x40)
 # each job does 5 parameter combos
 for round in range(4):
-    boxNum = job + round
+    boxNum = job + round*400
 
     # box x,y coords
     xIter = boxNum % N1
