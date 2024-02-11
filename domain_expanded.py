@@ -47,38 +47,6 @@ th1 = 35
 th2 = 22
 
 
-# Section 3: GP on True
-
-# Define interval box map for f
-def IntervalBoxMap2D(f, rect):
-    # Get endpoints defining rect
-    x1, y1, x2, y2 = rect
-    # Define interval box x
-    x = [interval[x1, x2], interval[y1, y2]]
-    # Evaluate f as an interval map
-    y = f(x)
-    # Get endpoints of y
-    # y[0] is the first variable interval
-    # y[1] is the second variable interval
-    x1, x2 = y[0][0].inf, y[0][0].sup
-    y1, y2 = y[1][0].inf, y[1][0].sup
-    return [x1, y1, x2, y2]
-
-# Define interval Leslie map
-def f(x, th1 = 35, th2 = 22):
-    return [(th1 * x[0] + th2 * x[1]) * imath.exp (-interval[0.1] * (x[0] + x[1])),
-            interval[0.7] * x[0]]
-
-# Define interval box map for f
-def F(rect):
-    return IntervalBoxMap2D(f, rect)
-
-
-# CMGDB on initial Domain
-model = CMGDB.Model(phase_subdiv, lower_bounds, upper_bounds, F)
-morse_graph, map_graph = CMGDB.ComputeConleyMorseGraph(model)
-
-
 # timing everything 
 startTime = time.time() # for computing runtime 
 latestTime = startTime
@@ -119,7 +87,6 @@ zero_counter = zero_checker(gp0 = gp0,
 
 # names for saving files
 fileName = '_sample_data_'
-# fileNameResults = 'ResultTables/results' + fileName  + '.csv'
 fileNameMGtrue_initial_domain = 'MorseGraphs/MG_True' + fileName + 'initial_domain'
 fileNameMGgp_initial_domain = 'MorseGraphs/MG_GP' + fileName + 'initial_domain'
 fileNameMGtrue_expanded_domain = 'MorseGraphs/MG_True' + fileName + 'expanded_domain'
@@ -151,11 +118,11 @@ if zero_counter == 0: # only triggers if mean nonzero
     
     # saving Morse Graphs
     mgTrue_initial_domain = CMGDB.PlotMorseGraph(morse_graph_True_initial_domain)
-    mgTrue_initial_domain.save(fileNameMGtrue)
+    mgTrue_initial_domain.save(fileNameMGtrue_initial_domain)
     mgGP_initial_domain = CMGDB.PlotMorseGraph(morse_graph_GP_initial_domain)
     mgGP_initial_domain.save(fileNameMGgp_initial_domain)
     mgTrue_expanded_domain = CMGDB.PlotMorseGraph(morse_graph_True_expanded_domain)
-    mgTrue_expanded_domain.save(fileNameMGtrue)
+    mgTrue_expanded_domain.save(fileNameMGtrue_expanded_domain)
     mgGP_expanded_domain = CMGDB.PlotMorseGraph(morse_graph_GP_expanded_domain)
     mgGP_expanded_domain.save(fileNameMGgp_expanded_domain)
     
